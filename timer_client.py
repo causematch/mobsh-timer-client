@@ -70,8 +70,8 @@ def load_config(options):
 
 def config(options):
     save_config(options)
-    print(f"config written to {options.config}", file=sys.stderr)
-    print(f"room url: {get_endpoint(options)}", file=sys.stderr)
+    print(f"config written to {options.config}")
+    print(f"room url: {get_endpoint(options)}")
 
 
 def shuffle(options):
