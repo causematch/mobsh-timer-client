@@ -30,8 +30,8 @@ def next_up(lineup):
     return lineup[:2]
 
 
-def rotate(lineup):
-    return lineup[1:] + lineup[:1]
+def rotate(lineup, count):
+    return lineup[count:] + lineup[:count]
 
 
 def get_endpoint(options):
@@ -79,18 +79,22 @@ def shuffle(options):
     save_lineup(options.lineup, lineup)
 
 
-def cycle(options):
-    punch(options, True)
+def forward(options):
+    punch(options, 1)
 
 
 def restart(options):
-    punch(options, False)
+    punch(options, 0)
 
 
-def punch(options, should_rotate):
+def back(options):
+    punch(options, -1)
+
+
+def punch(options, rotate_count):
     lineup = load_lineup(options.lineup)
-    if should_rotate:
-        lineup = rotate(lineup)
+    if rotate_count:
+        lineup = rotate(lineup, rotate_count)
         save_lineup(options.lineup, lineup)
     driver, navigator = next_up(lineup)
     endpoint = get_endpoint(options)
@@ -102,8 +106,9 @@ def punch(options, should_rotate):
 
 commands = {
     "config": config,
-    "next": cycle,
+    "next": forward,
     "restart": restart,
+    "back": back,
     "shuffle": shuffle,
 }
 
