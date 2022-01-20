@@ -118,6 +118,12 @@ def parse_args(args):
         description="timer client for https://timer.mob.sh"
     )
     parser.add_argument("--config", default=".mobsh-timerrc")
+    parser.add_argument(
+        "--new-room",
+        dest="room",
+        action="store_const",
+        const=str(uuid.uuid4()),
+    )
     parser.add_argument("--room")
     parser.add_argument("--site")
     parser.add_argument("--lineup")
