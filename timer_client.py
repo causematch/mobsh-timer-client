@@ -1,10 +1,19 @@
+#!/usr/bin/env python3
 "mob.sh timer client"
 import argparse
-import os
+import json
+import random
 import sys
 import uuid
 
 import requests
+
+defaults = {
+    "site": "https://timer.mob.sh",
+    "room": str(uuid.uuid4()),
+    "lineup": "lineup",
+    "time": "7",
+}
 
 
 def load_lineup(filepath):
@@ -33,24 +42,34 @@ def get_user(driver, navigator):
     return f"D: {driver}, N: {navigator}"
 
 
-def load_defaults():
-    return {
-        "site": os.getenv("MOB_TIMER_SITE", "https://timer.mob.sh"),
-        "room": os.getenv("MOB_TIMER_ROOM", str(uuid.uuid4())),
-        "lineup": os.getenv("MOB_TIMER_LINEUP", "lineup"),
-        "time": os.getenv("MOB_TIMER_TIME", "7"),
-    }
-
-
 def start_timer(endpoint, user, timer):
     requests.put(endpoint, json={"user": user, "timer": timer})
 
 
+def serialize_config(options):
+    return {
+        "site": options.site,
+        "room": options.room,
+        "lineup": options.lineup,
+        "time": options.time,
+    }
+
+
+def save_config(options):
+    with open(options.config, "w") as f:
+        json.dump(serialize_config(options), f, indent=2)
+
+
+def load_config(options):
+    try:
+        with open(options.config) as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return {}
+
+
 def config(options):
-    print(f"export MOB_TIMER_SITE={options.site}")
-    print(f"export MOB_TIMER_ROOM={options.room}")
-    print(f"export MOB_TIMER_LINEUP={options.lineup}")
-    print(f"export MOB_TIMER_TIME={options.time}")
+    save_config(options)
     print(f"room url: {get_endpoint(options)}", file=sys.stderr)
 
 
@@ -71,21 +90,39 @@ commands = {
 }
 
 
-def parse_args(args, defaults):
+def merge_options(options, config, default):
+    merge = lambda name: getattr(options, name) or config.get(name) or default[name]
+    return argparse.Namespace(
+        site=merge("site"),
+        room=merge("room"),
+        lineup=merge("lineup"),
+        time=merge("time"),
+        config=options.config,
+        command=options.command,
+    )
+
+
+def parse_args(args):
     parser = argparse.ArgumentParser(
         description="timer client for https://timer.mob.sh"
     )
-    parser.add_argument("--site", default=defaults.get("site"))
-    parser.add_argument("--room", default=defaults.get("room"))
-    parser.add_argument("--lineup", default=defaults.get("lineup"))
-    parser.add_argument("-t", "--time", type=int, default=defaults.get("time"))
+    parser.add_argument("--config", default=".mobsh-timerrc")
+    parser.add_argument("--room")
+    parser.add_argument("--site")
+    parser.add_argument("--lineup")
+    parser.add_argument("-t", "--time")
     parser.add_argument("command", choices=commands.keys())
     return parser.parse_args(args)
 
 
+def get_options(args, default_options):
+    cli_options = parse_args(args)
+    saved_config = load_config(cli_options)
+    return merge_options(cli_options, saved_config, default_options)
+
+
 def main(args):
-    defaults = load_defaults()
-    options = parse_args(args, defaults)
+    options = get_options(args, defaults)
     command = commands.get(options.command)
     if command:
         command(options)
