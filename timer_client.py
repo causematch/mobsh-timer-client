@@ -73,6 +73,12 @@ def config(options):
     print(f"room url: {get_endpoint(options)}", file=sys.stderr)
 
 
+def shuffle(options):
+    lineup = load_lineup(options.lineup)
+    random.shuffle(lineup)
+    save_lineup(options.lineup, lineup)
+
+
 def cycle(options):
     punch(options, True)
 
@@ -98,6 +104,7 @@ commands = {
     "config": config,
     "next": cycle,
     "restart": restart,
+    "shuffle": shuffle,
 }
 
 
