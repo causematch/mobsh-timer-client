@@ -74,19 +74,30 @@ def config(options):
 
 
 def cycle(options):
+    punch(options, True)
+
+
+def restart(options):
+    punch(options, False)
+
+
+def punch(options, should_rotate):
     lineup = load_lineup(options.lineup)
+    if should_rotate:
+        lineup = rotate(lineup)
+        save_lineup(options.lineup, lineup)
     driver, navigator = next_up(lineup)
     endpoint = get_endpoint(options)
     user = get_user(driver, navigator)
     timer = options.time
     print(f"{user} up for {timer} minutes")
     start_timer(endpoint=endpoint, user=user, timer=timer)
-    save_lineup(options.lineup, rotate(lineup))
 
 
 commands = {
     "config": config,
     "next": cycle,
+    "restart": restart,
 }
 
 
