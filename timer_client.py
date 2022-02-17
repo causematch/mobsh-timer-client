@@ -97,7 +97,7 @@ def punch(options, rotate_count):
     if rotate_count:
         lineup = rotate(lineup, rotate_count)
         save_lineup(options.lineup, lineup)
-    driver, navigator = next_up(lineup)
+    navigator, driver = next_up(lineup)
     endpoint = get_endpoint(options)
     user = get_user(driver, navigator)
     timer = options.time
